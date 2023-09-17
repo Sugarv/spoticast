@@ -3,6 +3,7 @@ from spotipy.oauth2 import SpotifyOAuth
 import spotipy
 import requests
 import configparser
+import webbrowser
 
 # Function to update the song info on the Shoutcast server
 def update_song_info():
@@ -58,6 +59,10 @@ def check_shoutcast():
         error_label.config(text="Shoutcast Server Error")
         root.after(10000, check_shoutcast)  # Retry after 10 seconds
 
+# Function to open the GitHub repository link
+def open_github_link():
+    webbrowser.open("https://github.com/Sugarv/spoticast")
+
 # Function to exit the application
 def exit_app():
     root.destroy()
@@ -77,7 +82,11 @@ shoutcast_port = shoutcast_config['port']
 admin_pass = shoutcast_config['admin_pass']
 
 # Initialize Spotipy with OAuth2 authentication
-sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope="user-read-playback-state user-read-currently-playing"))
+try:
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope="user-read-playback-state user-read-currently-playing"))
+except spotipy.oauth2.SpotifyOauthError as e:
+    error_label.config(text="Spotify Connection Error")
+    sp = None
 
 is_sending = False  # Flag to indicate if sending is active
 
@@ -99,8 +108,12 @@ begin_stop_button.pack(pady=10)
 error_label = tk.Label(root, text="", fg="blue")
 error_label.pack()
 
-footer_label = tk.Label(root, text="(c) sugarvag, 2023", fg="gray")
-footer_label.pack(side="bottom")
+# Create a Text widget for the footer as a hyperlink
+footer_text = tk.Text(root, wrap="none", height=1, width=50, cursor="hand2", relief=tk.FLAT, borderwidth=0)
+footer_text.tag_configure("hyperlink", foreground="blue", underline=True)
+footer_text.insert("1.0", "(c) sugarvag, 2023 - GitHub", "hyperlink")
+footer_text.pack(side="bottom")
+footer_text.bind("<Button-1>", lambda event: open_github_link())
 
 exit_button = tk.Button(root, text="Exit", command=exit_app, fg='red')
 exit_button.pack()
