@@ -1,0 +1,10 @@
+[spotify]
+client_id = YOUR_APP_CLIENT_ID
+client_secret = YOUR_SECRET_KEY
+redirect_uri = REDIRECT_URL (with http/s)
+
+[shoutcast]
+server = YOUR_SERVER_NAME (without http/s)
+port = YOUR_SERVER_PORT
+admin_pass = YOUR_PASS
+
