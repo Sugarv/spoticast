@@ -8,3 +8,7 @@ server = YOUR_SERVER_NAME (without http/s)
 port = YOUR_SERVER_PORT
 admin_pass = YOUR_PASS
 
+[air_api]
+partner_id = YOUR_TUNEIN_PARTNER_ID
+partner_key = YOUR_TUNEIN_PARTNER_KEY
+station_id = YOUR_TUNEIN_STATION_ID

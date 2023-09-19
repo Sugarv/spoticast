@@ -1,0 +1,6 @@
+config.txt
+build/
+.idea/
+.cache
+dist/
+spotipy.spec
