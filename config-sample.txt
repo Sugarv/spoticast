@@ -1,14 +1,14 @@
 [spotify]
-client_id = YOUR_APP_CLIENT_ID
-client_secret = YOUR_SECRET_KEY
-redirect_uri = REDIRECT_URL (with http/s)
+client_id = SPOTIFY_APP_CLIENT_ID
+client_secret = SPOTIFY_APP_SECRET_KEY
+redirect_uri = SPOTIFY_APP_REDIRECT_URL (with http/s)
 
 [shoutcast]
-server = YOUR_SERVER_NAME (without http/s)
-port = YOUR_SERVER_PORT
-admin_pass = YOUR_PASS
+server = SHOUTCAST_SERVER_NAME (without http/s)
+port = SHOUTCAST_SERVER_PORT
+admin_pass = SHOUTCAST_SERVER_ADMIN_PASS
 
 [air_api]
-partner_id = YOUR_TUNEIN_PARTNER_ID
-partner_key = YOUR_TUNEIN_PARTNER_KEY
-station_id = YOUR_TUNEIN_STATION_ID
+partner_id = TUNEIN_PARTNER_ID
+partner_key = TUNEIN_PARTNER_KEY
+station_id = TUNEIN_STATION_ID
