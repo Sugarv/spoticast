@@ -3,7 +3,9 @@
 ## Send Spotify's now playing track to Shoutcast server and/or TuneIn Radio AIR API
 
 A simple Python script that sends Spotify's now playing track to a Shoutcast server and/or TuneIn Radio AIR API.
-It uses [spotipy](https://github.com/spotipy-dev/spotipy) to retrieve song info from Spotify.
+Uses [spotipy](https://github.com/spotipy-dev/spotipy) to retrieve song info from Spotify and has a simple GUI with python's TKinter.
+
+![screenshot](/images/spoticast.png "SpotiCast screenshot")
 
 ### Configuration
 1. First, create a web app at Spotify, [here](https://developer.spotify.com/dashboard). *(Use http://localhost as a redirect uri)*.
