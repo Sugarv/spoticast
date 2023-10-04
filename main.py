@@ -5,6 +5,7 @@ import requests
 import configparser
 import webbrowser
 import requests.exceptions
+import urllib3.exceptions
 
 # Function to toggle sending to Shoutcast Server
 def toggle_shoutcast():
@@ -72,6 +73,9 @@ def update_song():
                     except requests.exceptions.RequestException as e:
                         print(f'Failed to send data to Shoutcast server: {str(e)}')
                         error_label_shoutcast.config(text="*** Shoutcast Server Error ***")
+                    except urllib3.exceptions.ProtocolError as e:
+                        print(f'ProtocolError: {str(e)}')
+                        error_label_shoutcast.config(text="*** Protocol Error ***")
 
                 if send_to_air_api:
                     # Construct the URL for updating the song info on the TuneIn Air API
@@ -90,6 +94,9 @@ def update_song():
                     except requests.exceptions.RequestException as e:
                         print(f'Failed to send data to TuneIn Air API: {str(e)}')
                         error_label_air_api.config(text="*** Air API Error ***")
+                    except urllib3.exceptions.ProtocolError as e:
+                        print(f'ProtocolError: {str(e)}')
+                        error_label_shoutcast.config(text="*** Protocol Error ***")
 
         if is_sending:
             root.after(10000, update_song)  # Update song info every 10 seconds while sending is active
