@@ -6,6 +6,9 @@ import configparser
 import webbrowser
 import requests.exceptions
 import urllib3.exceptions
+import urllib.parse
+import datetime
+
 
 # Function to toggle sending to Shoutcast Server
 def toggle_shoutcast():
@@ -48,6 +51,9 @@ def update_song():
         if current_track is not None:
             track_name = current_track['item']['name']
             artist_name = current_track['item']['artists'][0]['name']
+            # Properly encode the parameters
+            track_name = urllib.parse.quote(track_name)
+            artist_name = urllib.parse.quote(artist_name)
             song_info = f'{artist_name} - {track_name}'
             song_label.config(text=song_info)
 
@@ -65,16 +71,20 @@ def update_song():
                         response = requests.get(shoutcast_url)
 
                         if response.status_code == 200:
-                            print(f'Successfully updated song info on Shoutcast server: {song_info}')
+                            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            print(f'{timestamp}: Successfully updated song info on Shoutcast server: {song_info}')
                             error_label_shoutcast.config(text="")
                         else:
-                            print(f'Failed to update song info on Shoutcast server. HTTP Status Code: {response.status_code}')
+                            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            print(f'{timestamp}: Failed to update song info on Shoutcast server. HTTP Status Code: {response.status_code}')
                             error_label_shoutcast.config(text="*** Shoutcast Server Error ***")
                     except requests.exceptions.RequestException as e:
-                        print(f'Failed to send data to Shoutcast server: {str(e)}')
+                        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(f'{timestamp}: Failed to send data to Shoutcast server : {str(e)}')
                         error_label_shoutcast.config(text="*** Shoutcast Server Error ***")
                     except urllib3.exceptions.ProtocolError as e:
-                        print(f'ProtocolError: {str(e)}')
+                        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(f'{timestamp}: ProtocolError: {str(e)}')
                         error_label_shoutcast.config(text="*** Protocol Error ***")
 
                 if send_to_air_api:
@@ -86,23 +96,28 @@ def update_song():
                         response = requests.get(air_api_url)
 
                         if response.status_code == 200:
-                            print(f'Successfully updated song info on TuneIn Air API: {song_info}')
+                            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            print(f'{timestamp}: Successfully updated song info on TuneIn Air API: {song_info}')
                             error_label_air_api.config(text="")
                         else:
-                            print(f'Failed to update song info on TuneIn Air API. HTTP Status Code: {response.status_code}')
+                            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            print(f'{timestamp}: Failed to update song info on TuneIn Air API. HTTP Status Code: {response.status_code}')
                             error_label_air_api.config(text="*** Air API Error ***")
                     except requests.exceptions.RequestException as e:
-                        print(f'Failed to send data to TuneIn Air API: {str(e)}')
+                        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(f'{timestamp}: Failed to send data to TuneIn Air API: {str(e)}')
                         error_label_air_api.config(text="*** Air API Error ***")
                     except urllib3.exceptions.ProtocolError as e:
-                        print(f'ProtocolError: {str(e)}')
+                        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(f'{timestamp}: ProtocolError: {str(e)}')
                         error_label_shoutcast.config(text="*** Protocol Error ***")
 
         if is_sending:
             root.after(10000, update_song)  # Update song info every 10 seconds while sending is active
             root.after(10000, check_shoutcast)  # Check Shoutcast server status every 10 seconds
     except spotipy.SpotifyException as e:
-        print(f'Spotipy Error: {str(e)}')
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f'{timestamp}: Spotipy Error: {str(e)}')
         error_label_shoutcast.config(text="Spotify API Error")
 
 # Function to check the Shoutcast server status
