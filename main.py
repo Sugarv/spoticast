@@ -49,10 +49,17 @@ def update_song():
     # call spotipy's current_playback & catch exceptions
     try:
         current_track = sp.current_playback()
-    except spotipy.SpotifyException as e:
+    except spotipy.SpotifyException as err:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f'{timestamp}: Spotipy Error: {str(e)}')
+        print(f'{timestamp}: Spotipy Error: {str(err)}')
         error_label_shoutcast.config(text="Spotify API Error")
+    except urllib3.exceptions.ProtocolError as err:
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f'{timestamp}: ProtocolError: {str(err)}')
+        error_label_shoutcast.config(text="Protocol Error")
+    except Exception as err:
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f'{timestamp}: An unexpected error occurred: {str(err)}')
 
     if current_track is not None:
         track_name = current_track['item']['name']
