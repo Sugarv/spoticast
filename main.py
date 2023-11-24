@@ -53,13 +53,16 @@ def update_song():
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f'{timestamp}: Spotipy Error: {str(err)}')
         error_label_shoutcast.config(text="Spotify API Error")
+        return
     except urllib3.exceptions.ProtocolError as err:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f'{timestamp}: ProtocolError: {str(err)}')
         error_label_shoutcast.config(text="Protocol Error")
+        return
     except Exception as err:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f'{timestamp}: An unexpected error occurred: {str(err)}')
+        return
 
     if current_track is not None:
         track_name = current_track['item']['name']
