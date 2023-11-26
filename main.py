@@ -46,6 +46,11 @@ def update_song_info():
 
 # Function to update the currently playing song info
 def update_song():
+    # First, schedule next call in case of exception
+    if is_sending:
+        root.after(spotify_interval, update_song)  # Update song info every 10 seconds while sending is active
+        root.after(shoutcast_interval, check_shoutcast)  # Check Shoutcast server status every 10 seconds
+
     # call spotipy's current_playback & catch exceptions
     try:
         current_track = sp.current_playback()
@@ -128,9 +133,6 @@ def update_song():
                     print(f'{timestamp}: ProtocolError: {str(e)}')
                     error_label_shoutcast.config(text="*** Protocol Error ***")
 
-    if is_sending:
-        root.after(spotify_interval, update_song)  # Update song info every 10 seconds while sending is active
-        root.after(shoutcast_interval, check_shoutcast)  # Check Shoutcast server status every 10 seconds
 
 
 # Function to check the Shoutcast server status
