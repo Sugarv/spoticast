@@ -15,10 +15,13 @@ def toggle_shoutcast():
     global send_to_shoutcast
     send_to_shoutcast = not send_to_shoutcast
 
+
 # Function to toggle sending to TuneIn Air API
 def toggle_air_api():
     global send_to_air_api
     send_to_air_api = not send_to_air_api
+
+
 # Function to update the song info on the Shoutcast server
 def update_song_info():
     global is_sending, send_to_shoutcast, send_to_air_api, error_label_air_api, error_label_shoutcast
@@ -44,6 +47,7 @@ def update_song_info():
         shoutcast_checkbox.config(state="normal")
         air_api_checkbox.config(state="normal")
 
+
 # Function to update the currently playing song info
 def update_song():
     # First, schedule next call in case of exception
@@ -54,6 +58,9 @@ def update_song():
     # call spotipy's current_playback & catch exceptions
     try:
         current_track = sp.current_playback()
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        reply_timestamp = current_track['timestamp']
+        print(f'{timestamp}: Called Spotify API. Reply timestamp: {reply_timestamp}')
     except spotipy.SpotifyException as err:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f'{timestamp}: Spotipy Error: {str(err)}')
@@ -75,13 +82,14 @@ def update_song():
         # Properly encode the parameters
         track_name = urllib.parse.quote(track_name)
         artist_name = urllib.parse.quote(artist_name)
-        song_info = f'{artist_name} - {track_name}'
+        song_info = f'{artist_name}\n{track_name}'
         song_label.config(text=song_info)
 
         global last_song_info
         if is_sending and song_info != last_song_info:
             # Only update if the song has changed
             last_song_info = song_info
+            print(f'New song playing: {artist_name} - {track_name}')
 
             if send_to_shoutcast:
                 # Construct the URL for updating the song info on the Shoutcast server
@@ -134,7 +142,6 @@ def update_song():
                     error_label_shoutcast.config(text="*** Protocol Error ***")
 
 
-
 # Function to check the Shoutcast server status
 def check_shoutcast():
     if send_to_shoutcast:
@@ -151,13 +158,16 @@ def check_shoutcast():
     else:
         error_label_shoutcast.config(text="")  # Clear the error label if not sending to Shoutcast
 
+
 # Function to open the GitHub repository link
 def open_github_link():
     webbrowser.open("https://github.com/Sugarv/spoticast")
 
+
 # Function to exit the application
 def exit_app():
     root.destroy()
+
 
 # Read Spotify API credentials and Shoutcast server details from config.txt
 config = configparser.ConfigParser()
@@ -190,14 +200,14 @@ try:
     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope="user-read-playback-state user-read-currently-playing"))
 except spotipy.oauth2.SpotifyOauthError as e:
     print(f'Spotipy Error: {str(e)}')
-    error_label.config(text="Spotify Connection Error")
+    error_label_shoutcast.config(text="Spotify Connection Error")
     sp = None
 
 is_sending = False  # Flag to indicate if sending is active
 send_to_shoutcast = False  # Flag to control sending to Shoutcast
 send_to_air_api = False  # Flag to control sending to TuneIn Air API
 
-spotify_interval = 30000
+spotify_interval = 20000
 shoutcast_interval = 10000
 
 # Create the tkinter GUI
@@ -206,7 +216,7 @@ root.title("SpotiCast")
 
 # Set the window dimensions
 window_width = 250
-window_height = 250
+window_height = 260
 root.geometry(f"{window_width}x{window_height}")
 
 song_label = tk.Label(root, text="", font=("Helvetica", 12))
@@ -241,6 +251,6 @@ exit_button.pack()
 # Initialize last_song_info
 last_song_info = ""
 
-root.after(0, update_song)  # Initial call to update_song
-root.after(0, check_shoutcast)  # Initial call to check_shoutcast
+# root.after(0, update_song)  # Initial call to update_song
+# root.after(0, check_shoutcast)  # Initial call to check_shoutcast
 root.mainloop()
