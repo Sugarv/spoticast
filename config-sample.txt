@@ -8,6 +8,12 @@ server = SHOUTCAST_SERVER_NAME (without http/s)
 port = SHOUTCAST_SERVER_PORT
 admin_pass = SHOUTCAST_SERVER_ADMIN_PASS
 
+[icecast]
+server=your-icecast-server.com
+port=8000
+mount_point=/live
+admin_pass=your-admin-password
+
 [air_api]
 partner_id = TUNEIN_PARTNER_ID
 partner_key = TUNEIN_PARTNER_KEY

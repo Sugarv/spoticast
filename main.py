@@ -49,45 +49,77 @@ def update_song():
             last_song_info = song_info
             print(f'New song playing: {artist_name_repl} - {track_name_repl}')
 
-            # Construct the URL for updating the song info on the Shoutcast server
-            shoutcast_url = f'http://{shoutcast_server}:{shoutcast_port}/admin.cgi?pass={admin_pass}&mode=updinfo&song={song_info}'
+            # Update Shoutcast server if configured
+            if shoutcast_server:
+                # Construct the URL for updating the song info on the Shoutcast server
+                shoutcast_url = f'http://{shoutcast_server}:{shoutcast_port}/admin.cgi?pass={admin_pass}&mode=updinfo&song={song_info}'
 
-            try:
-                # Send the HTTP GET request to update the song info
-                response = requests.get(shoutcast_url)
+                try:
+                    # Send the HTTP GET request to update the song info
+                    response = requests.get(shoutcast_url)
 
-                if response.status_code == 200:
+                    if response.status_code == 200:
+                        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(f'{r_timestamp}: Successfully updated song info on Shoutcast server: {song_info}')
+                    else:
+                        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(f'{r_timestamp}: Failed to update song info on Shoutcast server. HTTP Status Code: {response.status_code}')
+                except requests.exceptions.RequestException as e:
                     r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(f'{r_timestamp}: Successfully updated song info on Shoutcast server: {song_info}')
-                else:
+                    print(f'{r_timestamp}: Failed to send data to Shoutcast server : {str(e)}')
+                except urllib3.exceptions.ProtocolError as e:
                     r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(f'{r_timestamp}: Failed to update song info on Shoutcast server. HTTP Status Code: {response.status_code}')
-            except requests.exceptions.RequestException as e:
-                r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                print(f'{r_timestamp}: Failed to send data to Shoutcast server : {str(e)}')
-            except urllib3.exceptions.ProtocolError as e:
-                r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                print(f'{r_timestamp}: ProtocolError: {str(e)}')
+                    print(f'{r_timestamp}: ProtocolError: {str(e)}')
 
-            # Construct the URL for updating the song info on the TuneIn Air API
-            air_api_url = f'http://air.radiotime.com/Playing.ashx?partnerId={partner_id}&partnerKey={partner_key}&id={station_id}&title={track_name}&artist={artist_name}'
+            # Update Icecast server if configured
+            if icecast_server:
+                # Construct the URL for updating the song info on the Icecast server
+                icecast_url = f"http://{icecast_server}:{icecast_port}/admin/metadata"
 
-            try:
-                # Send the HTTP GET request to update the song info
-                response = requests.get(air_api_url)
+                params = {
+                    "mount": icecast_mount,
+                    "mode": "updinfo",
+                    "song": song_info
+                }
 
-                if response.status_code == 200:
+                try:
+                    # Send the HTTP GET request to update the song info
+                    response = requests.get(icecast_url, params=params, auth=("source", icecast_pass))
+
+                    if response.status_code == 200:
+                        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(f'{r_timestamp}: Successfully updated song info on Icecast server: {song_info}')
+                    else:
+                        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(f'{r_timestamp}: Failed to update song info on Icecast server. HTTP Status Code: {response.status_code}')
+                except requests.exceptions.RequestException as e:
                     r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(f'{r_timestamp}: Successfully updated song info on TuneIn Air API: {song_info}')
-                else:
+                    print(f'{r_timestamp}: Failed to send data to Icecast server: {str(e)}')
+                except urllib3.exceptions.ProtocolError as e:
                     r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(f'{r_timestamp}: Failed to update song info on TuneIn Air API. HTTP Status Code: {response.status_code}')
-            except requests.exceptions.RequestException as e:
-                r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                print(f'{r_timestamp}: Failed to send data to TuneIn Air API: {str(e)}')
-            except urllib3.exceptions.ProtocolError as e:
-                r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                print(f'{r_timestamp}: ProtocolError: {str(e)}')
+                    print(f'{r_timestamp}: ProtocolError: {str(e)}')
+
+            # Update TuneIn Air API if configured
+            if partner_id:
+                # Construct the URL for updating the song info on the TuneIn Air API
+                air_api_url = f'http://air.radiotime.com/Playing.ashx?partnerId={partner_id}&partnerKey={partner_key}&id={station_id}&title={track_name}&artist={artist_name}'
+
+                try:
+                    # Send the HTTP GET request to update the song info
+                    response = requests.get(air_api_url)
+
+                    if response.status_code == 200:
+                        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(f'{r_timestamp}: Successfully updated song info on TuneIn Air API: {song_info}')
+                    else:
+                        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(f'{r_timestamp}: Failed to update song info on TuneIn Air API. HTTP Status Code: {response.status_code}')
+                except requests.exceptions.RequestException as e:
+                    r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    print(f'{r_timestamp}: Failed to send data to TuneIn Air API: {str(e)}')
+                except urllib3.exceptions.ProtocolError as e:
+                    r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    print(f'{r_timestamp}: ProtocolError: {str(e)}')
 
 
 # Initialize app
@@ -105,6 +137,13 @@ try:
     shoutcast_server = shoutcast_config.get('server')
     shoutcast_port = shoutcast_config.get('port')
     admin_pass = shoutcast_config.get('admin_pass')
+
+    # Read Icecast server details from config.txt
+    icecast_config = config['icecast']
+    icecast_server = icecast_config.get('server')
+    icecast_port = icecast_config.get('port')
+    icecast_mount = icecast_config.get('mount_point')
+    icecast_pass = icecast_config.get('admin_pass')
 
     # Read AIR API details from config.txt
     air_config = config['air_api']
