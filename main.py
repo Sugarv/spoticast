@@ -41,7 +41,7 @@ def update_song():
         # Properly encode the parameters
         track_name = urllib.parse.quote(track_name_repl)
         artist_name = urllib.parse.quote(artist_name_repl)
-        song_info = f'{artist_name} {track_name}'
+        song_info = f'{artist_name} - {track_name}'
 
         global last_song_info
         if song_info != last_song_info:
