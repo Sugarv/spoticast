@@ -2,7 +2,11 @@
 
 ## Send Spotify's now playing track to Shoutcast server and/or TuneIn Radio AIR API
 
-A simple Python script that sends Spotify's now playing track to a Shoutcast server and/or TuneIn Radio AIR API.
+A simple Python script that sends Spotify's now playing track to one or more of the following:
+- a Shoutcast server 
+- an Icecast server
+- TuneIn Radio AIR API.
+
 Uses [spotipy](https://github.com/spotipy-dev/spotipy) to retrieve song info from Spotify.
 
 ### Configuration
@@ -12,9 +16,16 @@ Uses [spotipy](https://github.com/spotipy-dev/spotipy) to retrieve song info fro
 - client_id = SPOTIFY_APP_CLIENT_ID (see [here](https://developer.spotify.com/dashboard))
 - client_secret = SPOTIFY_APP_SECRET_KEY
 - redirect_uri = SPOTIFY_APP_REDIRECT_URL (with http/https)
+#### Shoutcast section [shoutcast]
 - server = SHOUTCAST_SERVER_NAME (without http/https)
 - port = SHOUTCAST_SERVER_PORT
 - admin_pass = SHOUTCAST_SERVER_ADMIN_PASS
+#### Icecast section [icecast]
+- server = Icecast server name (without http/https)
+- port = Icecast server port
+- mount_point = Icecast server mount point
+- admin_pass = Icecast server admin pass
+#### TuneIn section [air_api]
 - partner_id = TUNEIN_PARTNER_ID
 - partner_key = TUNEIN_PARTNER_KEY
 - station_id = TUNEIN_STATION_ID

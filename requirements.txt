@@ -1,0 +1,14 @@
+altgraph==0.17.5
+async-timeout==5.0.1
+certifi==2026.1.4
+charset-normalizer==3.4.4
+idna==3.11
+packaging==26.0
+pefile==2024.8.26
+pyinstaller==6.18.0
+pyinstaller-hooks-contrib==2026.0
+pywin32-ctypes==0.2.3
+redis==7.1.0
+requests==2.32.5
+spotipy==2.25.2
+urllib3==2.6.3
