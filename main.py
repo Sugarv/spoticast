@@ -79,7 +79,7 @@ def update_song():
                 params = {
                     "mount": icecast_mount,
                     "mode": "updinfo",
-                    "song": song_info
+                    "song": f'{track_name_repl} - {artist_name_repl}'
                 }
 
                 try:
