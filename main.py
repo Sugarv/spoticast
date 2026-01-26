@@ -6,14 +6,11 @@ import requests.exceptions
 import urllib3.exceptions
 import urllib.parse
 import datetime
-import threading
+import time
 
 
 # Function to update the currently playing song info
 def update_song():
-    # Reschedule the function to run after a delay
-    threading.Timer(spotify_interval, update_song).start()
-
     # call spotipy's current_playback & catch exceptions
     try:
         current_track = sp.current_playback()
@@ -171,5 +168,7 @@ spotify_interval = 10.0
 # Initialize last_song_info
 last_song_info = ""
 
-# Initial run
-update_song()
+# Main loop
+while True:
+    update_song()
+    time.sleep(spotify_interval)
