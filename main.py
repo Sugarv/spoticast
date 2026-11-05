@@ -130,20 +130,21 @@ try:
     client_secret = spotify_config.get('client_secret')
     redirect_uri = spotify_config.get('redirect_uri')
 
-    shoutcast_config = config['shoutcast']
+    # Read Shoutcast server details from config.txt (if section exists)
+    shoutcast_config = config['shoutcast'] if config.has_section('shoutcast') else {}
     shoutcast_server = shoutcast_config.get('server')
     shoutcast_port = shoutcast_config.get('port')
     admin_pass = shoutcast_config.get('admin_pass')
 
-    # Read Icecast server details from config.txt
-    icecast_config = config['icecast']
+    # Read Icecast server details from config.txt (if section exists)
+    icecast_config = config['icecast'] if config.has_section('icecast') else {}
     icecast_server = icecast_config.get('server')
     icecast_port = icecast_config.get('port')
     icecast_mount = icecast_config.get('mount_point')
     icecast_pass = icecast_config.get('admin_pass')
 
-    # Read AIR API details from config.txt
-    air_config = config['air_api']
+    # Read AIR API details from config.txt (if section exists)
+    air_config = config['air_api'] if config.has_section('air_api') else {}
     partner_id = air_config.get('partner_id')
     partner_key = air_config.get('partner_key')
     station_id = air_config.get('station_id')
