@@ -4,9 +4,28 @@ import requests
 import configparser
 import requests.exceptions
 import urllib3.exceptions
-import urllib.parse
 import datetime
 import time
+
+
+def log(message):
+    """Print a timestamped log message."""
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f'{timestamp}: {message}')
+
+
+def send_update(url, service_name, song_info, params=None, auth=None):
+    """Send an HTTP GET request to update song info on a streaming service."""
+    try:
+        response = requests.get(url, params=params, auth=auth, timeout=10)
+        if response.status_code == 200:
+            log(f'Successfully updated song info on {service_name}: {song_info}')
+        else:
+            log(f'Failed to update song info on {service_name}. HTTP Status Code: {response.status_code}')
+    except requests.exceptions.RequestException as e:
+        log(f'Failed to send data to {service_name}: {e}')
+    except urllib3.exceptions.ProtocolError as e:
+        log(f'ProtocolError: {e}')
 
 
 # Function to update the currently playing song info
@@ -14,109 +33,68 @@ def update_song():
     # call spotipy's current_playback & catch exceptions
     try:
         current_track = sp.current_playback()
-        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        timestamp_seconds = current_track['timestamp'] / 1000.0
-        # Convert timestamp to a datetime object
-        converted_timestamp = datetime.datetime.utcfromtimestamp(timestamp_seconds).strftime('%Y-%m-%d %H:%M:%S')
-        print(f'{r_timestamp}: Called Spotify API. Reply timestamp: {converted_timestamp}')
     except spotipy.SpotifyException as err:
-        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f'{r_timestamp}: Spotipy Error: {str(err)}')
+        log(f'Spotipy Error: {err}')
         return
     except urllib3.exceptions.ProtocolError as err:
-        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f'{r_timestamp}: ProtocolError: {str(err)}')
+        log(f'ProtocolError: {err}')
         return
     except Exception as err:
-        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f'{r_timestamp}: An unexpected error occurred: {str(err)}')
+        log(f'An unexpected error occurred: {err}')
         return
 
-    if current_track is not None:
-        track_name_repl = current_track['item']['name']
-        artist_name_repl = current_track['item']['artists'][0]['name']
-        # Properly encode the parameters
-        track_name = urllib.parse.quote(track_name_repl)
-        artist_name = urllib.parse.quote(artist_name_repl)
-        song_info = f'{artist_name} - {track_name}'
+    if current_track is None or current_track.get('item') is None:
+        return
 
-        global last_song_info
-        if song_info != last_song_info:
-            # Only update if the song has changed
-            last_song_info = song_info
-            print(f'New song playing: {artist_name_repl} - {track_name_repl}')
+    timestamp_seconds = current_track['timestamp'] / 1000.0
+    converted_timestamp = datetime.datetime.fromtimestamp(
+        timestamp_seconds, tz=datetime.timezone.utc
+    ).strftime('%Y-%m-%d %H:%M:%S')
+    log(f'Called Spotify API. Reply timestamp: {converted_timestamp}')
 
-            # Update Shoutcast server if configured
-            if shoutcast_server:
-                # Construct the URL for updating the song info on the Shoutcast server
-                shoutcast_url = f'http://{shoutcast_server}:{shoutcast_port}/admin.cgi?pass={admin_pass}&mode=updinfo&song={song_info}'
+    track_name = current_track['item']['name']
+    artist_name = current_track['item']['artists'][0]['name']
+    song_info = f'{artist_name} - {track_name}'
 
-                try:
-                    # Send the HTTP GET request to update the song info
-                    response = requests.get(shoutcast_url)
+    global last_song_info
+    if song_info != last_song_info:
+        # Only update if the song has changed
+        last_song_info = song_info
+        print(f'New song playing: {song_info}')
 
-                    if response.status_code == 200:
-                        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(f'{r_timestamp}: Successfully updated song info on Shoutcast server: {song_info}')
-                    else:
-                        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(f'{r_timestamp}: Failed to update song info on Shoutcast server. HTTP Status Code: {response.status_code}')
-                except requests.exceptions.RequestException as e:
-                    r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(f'{r_timestamp}: Failed to send data to Shoutcast server : {str(e)}')
-                except urllib3.exceptions.ProtocolError as e:
-                    r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(f'{r_timestamp}: ProtocolError: {str(e)}')
+        # Update Shoutcast server if configured
+        if shoutcast_server:
+            send_update(
+                url=f'http://{shoutcast_server}:{shoutcast_port}/admin.cgi',
+                service_name='Shoutcast server',
+                song_info=song_info,
+                params={'pass': admin_pass, 'mode': 'updinfo', 'song': song_info}
+            )
 
-            # Update Icecast server if configured
-            if icecast_server:
-                # Construct the URL for updating the song info on the Icecast server
-                icecast_url = f"http://{icecast_server}:{icecast_port}/admin/metadata"
+        # Update Icecast server if configured
+        if icecast_server:
+            send_update(
+                url=f'http://{icecast_server}:{icecast_port}/admin/metadata',
+                service_name='Icecast server',
+                song_info=song_info,
+                params={'mount': icecast_mount, 'mode': 'updinfo', 'song': song_info},
+                auth=('source', icecast_pass)
+            )
 
-                params = {
-                    "mount": icecast_mount,
-                    "mode": "updinfo",
-                    "song": f'{artist_name_repl} - {track_name_repl}'
+        # Update TuneIn Air API if configured
+        if partner_id:
+            send_update(
+                url='http://air.radiotime.com/Playing.ashx',
+                service_name='TuneIn Air API',
+                song_info=song_info,
+                params={
+                    'partnerId': partner_id,
+                    'partnerKey': partner_key,
+                    'id': station_id,
+                    'title': track_name,
+                    'artist': artist_name
                 }
-
-                try:
-                    # Send the HTTP GET request to update the song info
-                    response = requests.get(icecast_url, params=params, auth=("source", icecast_pass))
-
-                    if response.status_code == 200:
-                        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(f'{r_timestamp}: Successfully updated song info on Icecast server: {song_info}')
-                    else:
-                        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(f'{r_timestamp}: Failed to update song info on Icecast server. HTTP Status Code: {response.status_code}')
-                except requests.exceptions.RequestException as e:
-                    r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(f'{r_timestamp}: Failed to send data to Icecast server: {str(e)}')
-                except urllib3.exceptions.ProtocolError as e:
-                    r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(f'{r_timestamp}: ProtocolError: {str(e)}')
-
-            # Update TuneIn Air API if configured
-            if partner_id:
-                # Construct the URL for updating the song info on the TuneIn Air API
-                air_api_url = f'http://air.radiotime.com/Playing.ashx?partnerId={partner_id}&partnerKey={partner_key}&id={station_id}&title={track_name}&artist={artist_name}'
-
-                try:
-                    # Send the HTTP GET request to update the song info
-                    response = requests.get(air_api_url)
-
-                    if response.status_code == 200:
-                        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(f'{r_timestamp}: Successfully updated song info on TuneIn Air API: {song_info}')
-                    else:
-                        r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(f'{r_timestamp}: Failed to update song info on TuneIn Air API. HTTP Status Code: {response.status_code}')
-                except requests.exceptions.RequestException as e:
-                    r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(f'{r_timestamp}: Failed to send data to TuneIn Air API: {str(e)}')
-                except urllib3.exceptions.ProtocolError as e:
-                    r_timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(f'{r_timestamp}: ProtocolError: {str(e)}')
+            )
 
 
 # Initialize app
@@ -149,27 +127,28 @@ try:
     partner_key = air_config.get('partner_key')
     station_id = air_config.get('station_id')
 
-except (configparser.NoSectionError, KeyError) as e:
+    # Read polling interval from config (default: 10 seconds)
+    spotify_interval = float(spotify_config.get('interval', '10'))
+
+except (configparser.NoSectionError, KeyError, ValueError) as e:
     print(f'Error reading configuration data: {str(e)}')
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f'{timestamp}: Configuration error...')
+    log('Configuration error...')
     exit(1)
 
 # Initialize Spotipy with OAuth2 authentication
 try:
     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope="user-read-playback-state user-read-currently-playing"))
 except spotipy.oauth2.SpotifyOauthError as e:
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f'{timestamp}: Spotipy Error: {str(e)}')
+    log(f'Spotipy Error: {e}')
     exit(1)
-
-
-spotify_interval = 10.0
 
 # Initialize last_song_info
 last_song_info = ""
 
 # Main loop
-while True:
-    update_song()
-    time.sleep(spotify_interval)
+try:
+    while True:
+        update_song()
+        time.sleep(spotify_interval)
+except KeyboardInterrupt:
+    print('\nShutting down...')
