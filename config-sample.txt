@@ -1,7 +1,36 @@
+; =====================================================================
+; CONFIGURATION GUIDE
+; =====================================================================
+;
+; 1. Create a Spotify app at https://developer.spotify.com/dashboard
+;
+; 2. In the app settings, add a Redirect URI. Use: http://localhost
+;    (This must match the redirect_uri value below exactly.)
+;
+; 3. Copy this file as config.txt and fill in the values below.
+;
+; 4. First-time authentication:
+;    When you run the script for the first time, your browser will open
+;    the Spotify login page. After logging in and granting access,
+;    Spotify will redirect you to something like:
+;
+;      http://localhost/?code=AQD...very_long_code...
+;
+;    The browser will show an error page (that's normal — nothing is
+;    running on localhost). Just copy the ENTIRE URL from your browser's
+;    address bar and paste it into the terminal when prompted:
+;
+;      "Enter the URL you were redirected to:"
+;
+;    After this, a .cache file is created and you won't be asked again
+;    (unless the token expires or the .cache file is deleted).
+;
+; =====================================================================
+
 [spotify]
 client_id = SPOTIFY_APP_CLIENT_ID
 client_secret = SPOTIFY_APP_SECRET_KEY
-redirect_uri = SPOTIFY_APP_REDIRECT_URL (with http/s)
+redirect_uri = http://localhost
 
 [shoutcast]
 server = SHOUTCAST_SERVER_NAME (without http/s)

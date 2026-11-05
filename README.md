@@ -1,6 +1,6 @@
 # Spoticast
 
-## Send Spotify's now playing track to Shoutcast server and/or TuneIn Radio AIR API
+## Send Spotify's now playing track to Shoutcast / Icecast server(s) and/or TuneIn Radio AIR API
 
 A simple Python script that sends Spotify's now playing track to one or more of the following:
 - a Shoutcast server 
@@ -10,24 +10,54 @@ A simple Python script that sends Spotify's now playing track to one or more of 
 Uses [spotipy](https://github.com/spotipy-dev/spotipy) to retrieve song info from Spotify.
 
 ### Configuration
-1. First, create a web app at Spotify, [here](https://developer.spotify.com/dashboard). *(Use http://localhost as a redirect uri)*.
-2. Create a config.txt file on the script folder, by copying the config-sample.txt and modifying the values below:
 
-- client_id = SPOTIFY_APP_CLIENT_ID (see [here](https://developer.spotify.com/dashboard))
-- client_secret = SPOTIFY_APP_SECRET_KEY
-- redirect_uri = SPOTIFY_APP_REDIRECT_URL (with http/https)
-#### Shoutcast section [shoutcast]
-- server = SHOUTCAST_SERVER_NAME (without http/https)
-- port = SHOUTCAST_SERVER_PORT
-- admin_pass = SHOUTCAST_SERVER_ADMIN_PASS
-#### Icecast section [icecast]
-- server = Icecast server name (without http/https)
-- port = Icecast server port
-- mount_point = Icecast server mount point
-- admin_pass = Icecast server admin pass
-#### TuneIn section [air_api]
-- partner_id = TUNEIN_PARTNER_ID
-- partner_key = TUNEIN_PARTNER_KEY
-- station_id = TUNEIN_STATION_ID
+1. Create a web app at the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
+2. In your app's settings, add `http://localhost` as a **Redirect URI**.
+3. Copy `config-sample.txt` to `config.txt` and fill in your values:
 
-3. Run the script
+#### Spotify section `[spotify]`
+| Key | Value |
+|---|---|
+| `client_id` | Your app's Client ID (from the [Dashboard](https://developer.spotify.com/dashboard)) |
+| `client_secret` | Your app's Client Secret |
+| `redirect_uri` | `http://localhost` (must match the Redirect URI in your app settings) |
+| `interval` | Polling interval in seconds (default: 10) |
+
+#### Shoutcast section `[shoutcast]` *(optional)*
+| Key | Value |
+|---|---|
+| `server` | Shoutcast server hostname (without `http://`) |
+| `port` | Shoutcast server port |
+| `admin_pass` | Shoutcast admin password |
+
+#### Icecast section `[icecast]` *(optional)*
+| Key | Value |
+|---|---|
+| `server` | Icecast server hostname (without `http://`) |
+| `port` | Icecast server port |
+| `mount_point` | Mount point (e.g. `/live`) |
+| `admin_pass` | Icecast admin password |
+
+#### TuneIn section `[air_api]` *(optional)*
+| Key | Value |
+|---|---|
+| `partner_id` | TuneIn Partner ID |
+| `partner_key` | TuneIn Partner Key |
+| `station_id` | TuneIn Station ID |
+
+4. Run the script: `python main.py`
+
+### First-time Spotify authentication
+
+The first time you run the script, your browser will open the Spotify login page.
+
+1. **Log in** to Spotify and click **Agree** to grant access.
+2. You will be redirected to a URL like:
+   ```
+   http://localhost/?code=AQD...very_long_code...
+   ```
+3. The page will show an error — **that's expected** (nothing is running on localhost).
+4. **Copy the entire URL** from your browser's address bar.
+5. **Paste it** into the terminal when prompted with `Enter the URL you were redirected to:`.
+
+After this, a `.cache` file is created and you won't need to authenticate again unless the token expires or the `.cache` file is deleted.
